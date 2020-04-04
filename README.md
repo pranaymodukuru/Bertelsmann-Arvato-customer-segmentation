@@ -7,8 +7,8 @@ The project is still in progress and will be updated.
 
 #### Status
 * Data Cleaning
-  * Replacing unkown values to NaNs
-  * Removing rows and columns with missing values based on a threshold
+  * Replaced unkown values to NaNs
+  * Removed rows and columns with missing values based on a threshold
 #### Future steps
 * Feature Engineering
 * Dimentionality reduction
