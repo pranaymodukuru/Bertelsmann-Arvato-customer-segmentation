@@ -14,11 +14,21 @@ def fix_cameo_cols(df):
     """
     Function to replace 'X', 'XX' and 'nan' values with -1 in 
     columns 18 and 19 i.e. ['CAMEO_DEUG_2015', 'CAMEO_INTL_2015'] 
+    
+    Also "CAMEO_DEU_2015", but it is dropped in later steps.
     """
     cols = ["CAMEO_DEUG_2015", "CAMEO_INTL_2015"]
     
     df[cols] = df[cols].replace({"X": np.nan, "XX": np.nan})
     df[cols] = df[cols].astype(float)
+    
+    return df
+
+def fix_ost_west_col(df):
+    """
+    Function to label encode the feature "OST_WEST_KZ"
+    """
+    df["OST_WEST_KZ"] = df["OST_WEST_KZ"].replace({"W": 0, "O": 1})
     
     return df
 
@@ -60,6 +70,13 @@ def get_missing_report(df):
                                      "Missing_Percentage": missing_percen}).reset_index(drop=True)
     return missing_percen_df
 
+def remove_columns(df, remove_cols):
+    """
+    Drops given list of columns from df.
+    """
+    df = df.drop(remove_cols, axis = 1)
+    return df
+
 def remove_missing_columns(df1, df2, df1_missing, df2_missing, threshold=30):
     """
     Drops columns from df1 and df2 with given threshold.
@@ -77,11 +94,11 @@ def remove_missing_columns(df1, df2, df1_missing, df2_missing, threshold=30):
     else:
         remove_cols = removable_cols2.Attribute.tolist()
          
-    df1 = df1.drop(remove_cols, axis = 1)
-    df2 = df2.drop(remove_cols, axis = 1)
+    df1 = remove_columns(df1, remove_cols)
+    df2 = remove_columns(df2, remove_cols)
     print(f"\t\tRemoved {len(remove_cols)} columns from given dataframes")
     
-    return (df1, df2)
+    return (df1, df2, remove_cols)
 
 def remove_missing_rows(df, threshold, name=""):
     """
@@ -107,6 +124,8 @@ def clean_data(azdias, customers, attributes_values, column_miss_perc=30, row_mi
     print("Cleaning Given Dataframes")
     
     start = time.time()
+    
+    cleaning_info = {}
     
     extra_cols_in_customers = [col for col in customers.columns if col not in azdias.columns]
     
@@ -137,10 +156,12 @@ def clean_data(azdias, customers, attributes_values, column_miss_perc=30, row_mi
     customer_missing_report = get_missing_report(customers)
     azdias_missing_report = get_missing_report(azdias)
     
-    azdias, customers = remove_missing_columns(azdias, customers, 
+    azdias, customers, removed_cols = remove_missing_columns(azdias, customers, 
                                                customer_missing_report,
                                                azdias_missing_report,
                                               threshold=column_miss_perc)
+    
+    cleaning_info["Removed_cols"] = removed_cols
     
     # Rows with missing values
     print(f"\tRemoving rows with more than {row_miss_count} missing values")
@@ -151,7 +172,7 @@ def clean_data(azdias, customers, attributes_values, column_miss_perc=30, row_mi
     
     print(f"Completed Cleaning in {end-start} seconds")
     
-    return azdias, customers
+    return azdias, customers, cleaning_info
 
 
 #####################################################################
