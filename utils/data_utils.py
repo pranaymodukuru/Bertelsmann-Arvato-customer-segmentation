@@ -161,18 +161,33 @@ def clean_data(azdias, customers, attributes_values, column_miss_perc=30, row_mi
                                                azdias_missing_report,
                                               threshold=column_miss_perc)
     
-    cleaning_info["Removed_cols"] = removed_cols
+    
     
     # Rows with missing values
     print(f"\tRemoving rows with more than {row_miss_count} missing values")
     customers = remove_missing_rows(customers, threshold=row_miss_count, name="Customers")
     azdias = remove_missing_rows(azdias, threshold=row_miss_count, name="Azdias")
     
+    
+    # Columns with no relevant information of which are too granular
+    print("\tRemoving unwanted Columns")
+    remove_extra_cols = ["EINGEFUEGT_AM", "D19_LETZTER_KAUF_BRANCHE", "CAMEO_DEU_2015"]
+    removed_cols += remove_extra_cols
+         
+    azdias = remove_columns(azdias, remove_extra_cols)
+    customers = remove_columns(customers, remove_extra_cols)
+    
+    # Separating customers dataset
+    customers_additional = customers[extra_cols_in_customers]
+    customers = customers.drop(extra_cols_in_customers, axis = 1)
+    
+    cleaning_info["Removed_cols"] = removed_cols   
+    
     end = time.time()
     
     print(f"Completed Cleaning in {end-start} seconds")
     
-    return azdias, customers, cleaning_info
+    return azdias, customers, customers_additional, cleaning_info
 
 
 #####################################################################
