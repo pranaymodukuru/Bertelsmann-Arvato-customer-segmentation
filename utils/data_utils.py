@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.impute import SimpleImputer
+
 #####################################################################
 ###                Data Cleaning functions                        ###
 #####################################################################
@@ -180,6 +182,14 @@ def clean_data(azdias, customers, attributes_values, column_miss_perc=30, row_mi
     # Separating customers dataset
     customers_additional = customers[extra_cols_in_customers]
     customers = customers.drop(extra_cols_in_customers, axis = 1)
+    
+    # Imputing Missing data
+    print("\tImputing missing values with most frequent ones")
+    imputer = SimpleImputer(strategy="most_frequent")
+
+    azdias = pd.DataFrame(imputer.fit_transform(azdias), columns = azdias.columns)
+    customers = pd.DataFrame(imputer.transform(customers), columns = customers.columns)
+    
     
     cleaning_info["Removed_cols"] = removed_cols   
     
